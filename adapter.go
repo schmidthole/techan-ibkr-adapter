@@ -1,6 +1,8 @@
 package techanibkradapter
 
 import (
+	"time"
+
 	"github.com/schmidthole/ibkr-webapi-go/ibkr"
 	"github.com/schmidthole/techan"
 	"github.com/sdcoffey/big"
@@ -41,14 +43,65 @@ func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Acco
 	return account, nil
 }
 
-func GetPricing(client *ibkr.IbkrWebClient, symbols []string) (techan.Pricing, error) {
-	return nil, nil
+func GetPricing(client *ibkr.IbkrWebClient, conIds []int) (techan.Pricing, error) {
+	snapshots, err := client.MarketDataSnapshot(conIds)
+	if err != nil {
+		return nil, err
+	}
+
+	pricing := techan.Pricing{}
+	for _, snapshot := range snapshots {
+		pricing[snapshot.Symbol] = big.NewDecimal(snapshot.LastPrice)
+	}
+
+	return pricing, nil
 }
 
-func GetTimeseries(client *ibkr.IbkrWebClient, symbol string, duration string, bar string) (*techan.TimeSeries, error) {
-	return nil, nil
+func GetTimeseries(client *ibkr.IbkrWebClient, conId int, period string, bar string) (*techan.TimeSeries, error) {
+	data, err := client.MarketDataHistory(conId, period, bar)
+	if err != nil {
+		return nil, err
+	}
+
+	// bar length is fixed right now but should be parsed and updated from the bar param
+	barLength := time.Hour * 24
+
+	timeseries := techan.NewTimeSeries()
+	for _, datum := range data.Data {
+		barPeriod := techan.NewTimePeriod(time.Unix(int64(datum.T), 0), barLength)
+		candle := techan.NewCandle(barPeriod)
+		candle.OpenPrice = big.NewDecimal(datum.O)
+		candle.ClosePrice = big.NewDecimal(datum.C)
+		candle.MaxPrice = big.NewDecimal(datum.H)
+		candle.MinPrice = big.NewDecimal(datum.L)
+		candle.Volume = big.NewDecimal(datum.V)
+
+		timeseries.AddCandle(candle)
+	}
+
+	return timeseries, nil
 }
 
-func ExecuteOrder(client *ibkr.IbkrWebClient, order techan.Order) error {
-	return nil
+func ExecuteOrder(client *ibkr.IbkrWebClient, accountID string, order techan.Order) (string, error) {
+	side := "BUY"
+	if order.Side == techan.SELL {
+		side = "SELL"
+	}
+
+	// some of the order fields are fixed for now. techan will need to be updated to support more
+	// fields in the order object in the future to support real broker connections vs. data analysis
+	ibOrder := ibkr.Order{
+		AccountId:   accountID,
+		OrderType:   "MKT",
+		Side:        side,
+		TimeInForce: "DAY",
+		Quantity:    order.Amount.Float(),
+	}
+
+	response, err := client.PlaceOrder(accountID, ibOrder)
+	if err != nil {
+		return "", err
+	}
+
+	return response.ID, nil
 }
