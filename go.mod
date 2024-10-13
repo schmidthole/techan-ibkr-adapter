@@ -4,7 +4,8 @@ go 1.23.1
 
 require (
 	github.com/schmidthole/ibkr-webapi-go v0.2.0
-	github.com/schmidthole/techan v1.0.2
+	github.com/schmidthole/techan v1.0.3
+	github.com/sdcoffey/big v0.7.0
 )
 
 require (
@@ -15,7 +16,6 @@ require (
 	github.com/go-playground/validator/v10 v10.22.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/sdcoffey/big v0.7.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
