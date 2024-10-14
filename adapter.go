@@ -43,18 +43,33 @@ func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Acco
 	return account, nil
 }
 
-func GetPricing(client *ibkr.IbkrWebClient, conIds []int) (techan.Pricing, error) {
+func GetMarketSnapshot(client *ibkr.IbkrWebClient, conIds []int) (*techan.MarketSnapshot, error) {
 	snapshots, err := client.MarketDataSnapshot(conIds)
 	if err != nil {
 		return nil, err
 	}
 
 	pricing := techan.Pricing{}
+	tradingState := map[string]techan.TradingState{}
 	for _, snapshot := range snapshots {
 		pricing[snapshot.Symbol] = big.NewDecimal(snapshot.LastPrice)
+
+		var state techan.TradingState = techan.OPEN
+		if !snapshot.TradingActive {
+			state = techan.CLOSED
+		}
+
+		if snapshot.TradingHalted {
+			state = techan.HALTED
+		}
+
+		tradingState[snapshot.Symbol] = state
 	}
 
-	return pricing, nil
+	return &techan.MarketSnapshot{
+		Pricing:      pricing,
+		TradingState: tradingState,
+	}, nil
 }
 
 func GetTimeseries(client *ibkr.IbkrWebClient, conId int, period string, bar string) (*techan.TimeSeries, error) {
