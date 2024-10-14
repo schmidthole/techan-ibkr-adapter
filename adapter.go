@@ -107,9 +107,9 @@ func ExecuteOrder(client *ibkr.IbkrWebClient, accountID string, order techan.Ord
 	// fields in the order object in the future to support real broker connections vs. data analysis
 	ibOrder := ibkr.Order{
 		AccountId:   accountID,
-		OrderType:   "MKT",
+		OrderType:   string(order.Type),
 		Side:        side,
-		TimeInForce: "DAY",
+		TimeInForce: string(order.TimeInForce),
 		Quantity:    order.Amount.Float(),
 	}
 

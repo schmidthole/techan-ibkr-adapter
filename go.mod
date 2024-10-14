@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/schmidthole/ibkr-webapi-go v0.3.0
-	github.com/schmidthole/techan v1.0.4
+	github.com/schmidthole/techan v1.0.5
 	github.com/sdcoffey/big v0.7.0
 )
 

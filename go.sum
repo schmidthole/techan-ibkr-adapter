@@ -17,8 +17,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/schmidthole/ibkr-webapi-go v0.3.0 h1:24yyN5fgQEpkiBnTt6SuF/vQclQlz5Bkq/HEa5EIXko=
 github.com/schmidthole/ibkr-webapi-go v0.3.0/go.mod h1:hYcs/Ue8BbTq5qLJwyCU31S8efVhetjthJji5XPOFks=
-github.com/schmidthole/techan v1.0.4 h1:NIWYtvI1T7wmMkaj+BQ/ZfLKkbgwGXzAEbdZocA989A=
-github.com/schmidthole/techan v1.0.4/go.mod h1:yZP2RoGWeJnnm3UHSMUeqC2g5N+/oK2CwJ1uhH1xyME=
+github.com/schmidthole/techan v1.0.5 h1:FZbiK/l9yBRACcR5ddCNvxxQ0e5ch9OnzGqOMIVm0/Y=
+github.com/schmidthole/techan v1.0.5/go.mod h1:yZP2RoGWeJnnm3UHSMUeqC2g5N+/oK2CwJ1uhH1xyME=
 github.com/sdcoffey/big v0.7.0 h1:OnE7fcHq/C59WxWrMegftFa1nftCjsZLVf7PLXsxj2Y=
 github.com/sdcoffey/big v0.7.0/go.mod h1:2T05Q7Mt6F1kHHb+PFa0odPFwU67YnSAFYgiYy7krPU=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
