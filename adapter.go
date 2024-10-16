@@ -1,6 +1,7 @@
 package techanibkradapter
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/schmidthole/ibkr-webapi-go/ibkr"
@@ -9,10 +10,35 @@ import (
 )
 
 func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Account, error) {
-	// required to call this before any other portfolio/account endpoints
-	_, err := client.GetPortfolioSubaccounts()
-	if err != nil {
-		return nil, err
+	retries := 0
+	var err error
+
+	// required to call these before any other portfolio/account endpoints
+	for retries < 3 {
+		_, err = client.GetAccounts()
+		if err != nil {
+			retries += 1
+			time.Sleep(time.Millisecond * 500)
+		} else {
+			break
+		}
+	}
+	if retries == 3 {
+		return nil, fmt.Errorf("max retries for get account exceeded: %v", err)
+	}
+
+	retries = 0
+	for retries < 3 {
+		_, err = client.GetPortfolioSubaccounts()
+		if err != nil {
+			retries += 1
+			time.Sleep(time.Millisecond * 500)
+		} else {
+			break
+		}
+	}
+	if retries == 3 {
+		return nil, fmt.Errorf("max retries for get account exceeded: %v", err)
 	}
 
 	ibAccountLedger, err := client.GetPortfolioAccountLedger(accountID)
@@ -43,16 +69,41 @@ func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Acco
 	return account, nil
 }
 
-func GetMarketSnapshot(client *ibkr.IbkrWebClient, conIds []int) (*techan.MarketSnapshot, error) {
-	snapshots, err := client.MarketDataSnapshot(conIds)
-	if err != nil {
-		return nil, err
+func GetMarketSnapshot(client *ibkr.IbkrWebClient, symbolConIdMap map[string]int) (*techan.MarketSnapshot, error) {
+	symbolLookup := map[int]string{}
+	conIds := []int{}
+
+	for symbol, conid := range symbolConIdMap {
+		conIds = append(conIds, conid)
+		symbolLookup[conid] = symbol
+	}
+
+	retries := 0
+	var err error
+	var snapshots []ibkr.MarketDataSnapshot
+
+	for retries < 3 {
+		snapshots, err = client.MarketDataSnapshot(conIds)
+		if err != nil {
+			retries += 1
+			time.Sleep(time.Millisecond * 500)
+		} else {
+			break
+		}
+	}
+	if retries == 3 {
+		return nil, fmt.Errorf("market data snapshot retries exceeded: %v", err)
 	}
 
 	pricing := techan.Pricing{}
 	tradingState := map[string]techan.TradingState{}
 	for _, snapshot := range snapshots {
-		pricing[snapshot.Symbol] = big.NewDecimal(snapshot.LastPrice)
+		symbol, exists := symbolLookup[snapshot.ConID]
+		if !exists {
+			return nil, fmt.Errorf("conid snapshot returned that is not in symbol lookup")
+		}
+
+		pricing[symbol] = big.NewDecimal(snapshot.LastPrice)
 
 		var state techan.TradingState = techan.OPEN
 		if !snapshot.TradingActive {
@@ -63,7 +114,7 @@ func GetMarketSnapshot(client *ibkr.IbkrWebClient, conIds []int) (*techan.Market
 			state = techan.HALTED
 		}
 
-		tradingState[snapshot.Symbol] = state
+		tradingState[symbol] = state
 	}
 
 	return &techan.MarketSnapshot{
@@ -103,8 +154,6 @@ func ExecuteOrder(client *ibkr.IbkrWebClient, accountID string, order techan.Ord
 		side = "SELL"
 	}
 
-	// some of the order fields are fixed for now. techan will need to be updated to support more
-	// fields in the order object in the future to support real broker connections vs. data analysis
 	ibOrder := ibkr.Order{
 		AccountId:   accountID,
 		OrderType:   string(order.Type),
