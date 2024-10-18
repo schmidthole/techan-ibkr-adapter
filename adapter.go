@@ -10,9 +10,10 @@ import (
 )
 
 func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Account, error) {
-	retries := 0
 	var err error
 
+	retries := 0
+	err = nil
 	// required to call these before any other portfolio/account endpoints
 	for retries < 3 {
 		_, err = client.GetAccounts()
@@ -23,11 +24,12 @@ func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Acco
 			break
 		}
 	}
-	if retries == 3 {
+	if (retries == 3) && (err != nil) {
 		return nil, fmt.Errorf("max retries for get account exceeded: %v", err)
 	}
 
 	retries = 0
+	err = nil
 	for retries < 3 {
 		_, err = client.GetPortfolioSubaccounts()
 		if err != nil {
@@ -37,7 +39,7 @@ func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Acco
 			break
 		}
 	}
-	if retries == 3 {
+	if (retries == 3) && (err != nil) {
 		return nil, fmt.Errorf("max retries for get account exceeded: %v", err)
 	}
 
@@ -168,4 +170,27 @@ func ExecuteOrder(client *ibkr.IbkrWebClient, accountID string, order techan.Ord
 	}
 
 	return response.ID, nil
+}
+
+func GetOrders(client *ibkr.IbkrWebClient) ([]techan.Order, error) {
+	orders := []techan.Order{}
+
+	raw, err := client.GetLiveOrders()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, o := range raw.Orders {
+		order := techan.Order{
+			Side:        techan.OrderSide(o.Side),
+			Security:    o.Ticker,
+			Type:        techan.OrderType(o.OrderType),
+			Amount:      big.NewDecimal(o.RemainingQuantity + o.FilledQuantity),
+			TimeInForce: techan.TimeInForce(o.TimeInForce),
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
 }
