@@ -181,12 +181,34 @@ func GetOrders(client *ibkr.IbkrWebClient) ([]techan.Order, error) {
 	}
 
 	for _, o := range raw.Orders {
+		var status techan.OrderStatus
+
+		switch o.Status {
+		case "Filled":
+			status = techan.FILLED
+		case "Inactive":
+			fallthrough
+		case "PendingSubmit":
+			fallthrough
+		case "PreSubmitted":
+			fallthrough
+		case "Submitted":
+			status = techan.PENDING
+		case "PendingCancel":
+			fallthrough
+		case "Cancelled":
+			status = techan.CANCELLED
+		default:
+			status = techan.OTHER
+		}
+
 		order := techan.Order{
 			Side:        techan.OrderSide(o.Side),
 			Security:    o.Ticker,
 			Type:        techan.OrderType(o.OrderType),
 			Amount:      big.NewDecimal(o.RemainingQuantity + o.FilledQuantity),
 			TimeInForce: techan.TimeInForce(o.TimeInForce),
+			Status:      status,
 		}
 
 		orders = append(orders, order)
