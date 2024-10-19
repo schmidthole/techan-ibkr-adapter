@@ -19,7 +19,7 @@ func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Acco
 		_, err = client.GetAccounts()
 		if err != nil {
 			retries += 1
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Second * 1)
 		} else {
 			break
 		}
@@ -34,7 +34,7 @@ func GetAccountState(client *ibkr.IbkrWebClient, accountID string) (*techan.Acco
 		_, err = client.GetPortfolioSubaccounts()
 		if err != nil {
 			retries += 1
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Second * 1)
 		} else {
 			break
 		}
@@ -84,16 +84,16 @@ func GetMarketSnapshot(client *ibkr.IbkrWebClient, symbolConIdMap map[string]int
 	var err error
 	var snapshots []ibkr.MarketDataSnapshot
 
-	for retries < 3 {
+	for retries < 5 {
 		snapshots, err = client.MarketDataSnapshot(conIds)
 		if err != nil {
 			retries += 1
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Second * 1)
 		} else {
 			break
 		}
 	}
-	if retries == 3 {
+	if retries == 5 {
 		return nil, fmt.Errorf("market data snapshot retries exceeded: %v", err)
 	}
 
