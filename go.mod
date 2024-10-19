@@ -3,7 +3,7 @@ module github.com/schmidthole/techan-ibkr-adapter
 go 1.23.1
 
 require (
-	github.com/schmidthole/ibkr-webapi-go v1.0.8
+	github.com/schmidthole/ibkr-webapi-go v1.1.0
 	github.com/schmidthole/techan v1.0.6
 	github.com/sdcoffey/big v0.7.0
 )
