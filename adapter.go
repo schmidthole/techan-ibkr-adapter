@@ -158,6 +158,7 @@ func ExecuteOrder(client *ibkr.IbkrWebClient, accountID string, order techan.Ord
 
 	ibOrder := ibkr.Order{
 		AccountId:   accountID,
+		ConID:       int32(order.ContractID),
 		OrderType:   string(order.Type),
 		Side:        side,
 		TimeInForce: string(order.TimeInForce),
@@ -205,6 +206,7 @@ func GetOrders(client *ibkr.IbkrWebClient) ([]techan.Order, error) {
 		order := techan.Order{
 			Side:        techan.OrderSide(o.Side),
 			Security:    o.Ticker,
+			ContractID:  int(o.ConID),
 			Type:        techan.OrderType(o.OrderType),
 			Amount:      big.NewDecimal(o.RemainingQuantity + o.FilledQuantity),
 			TimeInForce: techan.TimeInForce(o.TimeInForce),
